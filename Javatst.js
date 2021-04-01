@@ -1,11 +1,11 @@
 //consts go here//
-const fs = require('fs');
-
 const readline = require('readline').createInterface
     ({
     input: process.stdin,
     output: process.stdout
     });
+const fs = require('fs');
+
 
 
 //Color definitions//
@@ -43,6 +43,15 @@ const exit = "exit";
 
 
 //vars go here//
+let ts = Date.now();
+let date_ob = new Date(ts);
+let hours = date_ob.getHours();
+let minutes = date_ob.getMinutes();
+let date = date_ob.getDate();
+let month = date_ob.getMonth() + 1;
+let year = date_ob.getFullYear();
+let realhoursPM = hours - 12;
+let realhours = hours;
 var savedataswitcher = 0;
 let playername = 0;
 let playerage = 0;
@@ -90,12 +99,16 @@ function Getstats()
             console.log("\nYou have chosen the name: %s. ", playername);
             playernamesw = 1;
             holdname = playername;
+            health=100;
+            mana=50;
+            gold=10;
             playerlvl = 1;
             playerloc = [0, 0, 0];
             savedatasw = 1;
             input = 1;
             Save();
             Graphic2();
+            Map();
             Hud();
             Commands();
         });
@@ -103,15 +116,6 @@ function Getstats()
 };
 
 //Date & Time function//
-let ts = Date.now();
-let date_ob = new Date(ts);
-let hours = date_ob.getHours();
-let minutes = date_ob.getMinutes();
-let date = date_ob.getDate();
-let month = date_ob.getMonth() + 1;
-let year = date_ob.getFullYear();
-let realhoursPM = hours - 12;
-let realhours = hours;
 
 function datetimestamp()
 {
@@ -187,8 +191,16 @@ function Save()
    /* var savearr = [holdname, playerlvl, health, mana, gold, savecoord];
     var savedata = JSON.stringify(savearr);*/
     savedatasw = 1;
-    playername = holdname;
+    playerinfo.playername=playername;
+    playerinfo.playerlvl=playerlvl;
+    playerinfo.health=health;
+    playerinfo.mana=mana;
+    playerinfo.gold=gold;
+    playerinfo.savecoord=savecoord;
+    playerinfo.savedatasw=savedatasw;
+    
     fs.writeFileSync("save.json", JSON.stringify(playerinfo));
+    
     return;
 };
 //end save//
@@ -200,24 +212,27 @@ function Load()
     if (fs.existsSync("save.json"))
     {
         savedatasw = 1;
-        fs.readFileSync('save.json', 'utf8', (err, jsonString) => 
-        {
-            if (err) 
-            {
-                console.log(err);
-                return;
-            }
-            else 
-            {
-                const data = JSON.parse(jsonString);
-                playerinfo = data.holdname, data.playerlvl, data.health, data.mana, data.gold, data.savecoord, data.savedatasw;
-                return;
-            }
-        });
-    return;
+        const importdata = fs.readFileSync('save.json', 'utf8');
+        const playerdata = JSON.parse(importdata);
+        playername=playerdata.playername;
+        playerlvl=playerdata.playerlvl;
+        health=playerdata.health;
+        mana=playerdata.mana;
+        gold=playerdata.gold;
+        savecoord=playerdata.savecoord;
+        savedatasw=playerdata.savedatasw;
+        playerinfo.playername=playername;
+        playerinfo.playerlvl=playerlvl;
+        playerinfo.health=health;
+        playerinfo.mana=mana;
+        playerinfo.gold=gold;
+        playerinfo.savecoord=savecoord;
+        playerinfo.savedatasw=savedatasw;
+        return;
     }
+
     return;
-};
+    };
 //end load//
 
 
@@ -232,7 +247,7 @@ function Hud()
 {
     Coord();
     datetimestamp();
-    console.log("\n\x1b[32m< %s LV: %d H \x1b[31m %d \x1b[32m M \x1b[34m %d \x1b[32m G \x1b[33m %d \x1b[32m >\x1b[0m", holdname, playerlvl, health, mana, gold);
+    console.log("\n\x1b[32m< %s LV: %d H \x1b[31m %d \x1b[32m M \x1b[34m %d \x1b[32m G \x1b[33m %d \x1b[32m >\x1b[0m", playerinfo.playername, playerinfo.playerlvl, playerinfo.health, playerinfo.mana, playerinfo.gold);
 };
 
 //save check function//
@@ -301,6 +316,13 @@ function Commands()
         {
             if (input == save)
             {
+                playerinfo.playername=playername;
+                playerinfo.playerlvl=playerlvl;
+                playerinfo.health=health;
+                playerinfo.mana=mana;
+                playerinfo.gold=gold;
+                playerinfo.savecoord=savecoord;
+                playerinfo.savedatasw=savedatasw;
                 Save();
                 input = 0;
                 Map();
@@ -308,7 +330,7 @@ function Commands()
                 console.log("\n\nGame saved.\n\n");
                 Commands();
                 return;
-            };
+            }
         
             if (input == load)
             {
@@ -320,14 +342,31 @@ function Commands()
                 Commands();
 
                 return;
-            };
+            }
 
             if (input == exit)
             {
+                
+                playerinfo.playername=playername;
+                playerinfo.playerlvl=playerlvl;
+                playerinfo.health=health;
+                playerinfo.mana=mana;
+                playerinfo.gold=gold;
+                playerinfo.savecoord=savecoord;
+                playerinfo.savedatasw=savedatasw;
                 Save();
                 console.log("\n\nGame saved. Exiting.\n\n");
                 process.exit();
-            };
+            }
+
+            else 
+            {
+                Map();
+                Hud();
+                console.log(Red,"You have entered an incorrect command. Please try again.", Reset);
+                Commands();
+            }
+            
         return;
         });
     return;
@@ -423,7 +462,7 @@ function Graphic2()
 //How main runs//
 function Main()
 {
-    inital_save=0;
+    initial_save=0;
     Savecheck();
 
         if (initial_save == 0)
@@ -436,6 +475,7 @@ function Main()
 
         if (initial_save == 1)
         {
+            
             Graphic2();
             Load();
             Map();
