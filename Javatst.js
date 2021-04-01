@@ -7,6 +7,7 @@ const readline = require('readline').createInterface
     output: process.stdout
     });
 
+
 //Color definitions//
 const Reset = "\x1b[0m";
 const Bright = "\x1b[1m";
@@ -43,7 +44,6 @@ const exit = "exit";
 
 //vars go here//
 var savedataswitcher = 0;
-var savedatasw = 0;
 let playername = 0;
 let playerage = 0;
 let dn = 0;
@@ -54,7 +54,6 @@ var playerlvl = 0;
 var health = 0;
 var gold = 0;
 var mana = 0;
-let savecoord = 0;
 let savedata = 0;
 var holdname = 0;
 var holdage = 0;
@@ -62,6 +61,20 @@ var map = [40, 60, 3];
 let playerloc = [0, 0, 0];
 let input = 0;
 var intialsw = 0;
+var savedatasw = 0;
+var savecoord = 0;
+let initial_save = 0;
+var statsw = 0;
+var playerinfo =
+{
+    playername,
+    playerlvl,
+    health,
+    mana,
+    gold,
+    savecoord,
+    savedatasw
+};
 //end of vars//
 
 
@@ -70,26 +83,26 @@ var intialsw = 0;
 //stats intitilzation//
 function Getstats()
 {
-    readline.question("\n\nPlease tell me your name. ", playername =>
+    if (input==0)
     {
-        console.log("\nYou have chosen the name: %s. ", playername);
-        playernamesw = 1;
-        holdname = playername;
-        /*readline.question("\nPlease tell me your age. ", playerage =>
+        readline.question("\n\nPlease tell me your name. ", playername =>
         {
-        console.log("\nYou have entered %s as your age.", playerage);
-            playeragesw = 1;
-            holdage = playerage;*/
+            console.log("\nYou have chosen the name: %s. ", playername);
+            playernamesw = 1;
+            holdname = playername;
             playerlvl = 1;
             playerloc = [0, 0, 0];
+            savedatasw = 1;
+            input = 1;
             Save();
-            Main();
-        
-    });
-}
+            Graphic2();
+            Hud();
+            Commands();
+        });
+    }
+};
 
 //Date & Time function//
-
 let ts = Date.now();
 let date_ob = new Date(ts);
 let hours = date_ob.getHours();
@@ -97,51 +110,37 @@ let minutes = date_ob.getMinutes();
 let date = date_ob.getDate();
 let month = date_ob.getMonth() + 1;
 let year = date_ob.getFullYear();
-let realhours = hours - 12;
+let realhoursPM = hours - 12;
+let realhours = hours;
 
 function datetimestamp()
 {
-    
-    /*if (hours < 11)
-    {
-        dn = "Morning";
-    }
-
-    if (hours > 11 && hours < 16)
-    {
-        dn = "Afternoon";
-    }
-
-    if (hours > 16 && hours < 20)
-    {
-        dn = "Evening";
-    }
-
-    if (hours > 20)
-    {
-        dn = "Night";
-    }*/
     daynight();
+
     if (hours < 12 && minutes < 10)
     {
-            console.log("\x1b[0m  " + realhours + ":0" + minutes + "AM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        console.log("\x1b[0m  " + realhours + ":0" + minutes + "AM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        return;
     }
     
     if (hours < 12 && minutes > 10)
     {
         console.log("\x1b[0m  " + realhours + ":" + minutes + "AM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        return;
     }
     
     if (hours > 12 && minutes < 10)
     {
-        console.log("\x1b[0m  " + realhours + ":0" + minutes + "PM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        console.log("\x1b[0m  " + realhoursPM + ":0" + minutes + "PM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        return;
     }
 
     if (hours > 12 && minutes > 10)
     {
-        console.log("\x1b[0m  " + realhours + ":" + minutes + "PM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
-
+        console.log("\x1b[0m  " + realhoursPM + ":" + minutes + "PM " + month + "-" + date + "-" + year + "  " + "\x1b[40m %s \x1b[0m", dn);
+        return;
     }
+    return;
 };
 //end date&time//
 
@@ -150,61 +149,74 @@ function datetimestamp()
 function daynight()
 {
    
-    if (hours < 11)
+    if (hours < 12)
     {
         dnstatus = "Morning";
         dn = dnstatus;
+        return;
     }
 
-    if (hours > 11 && hours < 16)
+    if (hours > 12 && hours < 16)
     {
         dnstatus = "Afternoon";
         dn = dnstatus;
+        return;
     }
 
     if (hours > 16 && hours < 20)
     {
         dnstatus = "Evening";
         dn = dnstatus;
+        return;
     }
 
     else
     {
         dnstatus = "Night";
         dn = dnstatus;
+        return;
     }
+ return;
 };
 //end day/night system//
 
 //save function//
 
-function Save()
+function Save() 
 {
-    var savearr = [holdname, playerlvl, health, mana, gold, savecoord];
-    var savedata = JSON.stringify(savearr);
-    fs.writeFileSync("save.txt", savedata);
+   /* var savearr = [holdname, playerlvl, health, mana, gold, savecoord];
+    var savedata = JSON.stringify(savearr);*/
     savedatasw = 1;
+    playername = holdname;
+    fs.writeFileSync("save.json", JSON.stringify(playerinfo));
+    return;
 };
 //end save//
 
 //load function//
 function Load()
 {
-    if (!fs.existsSync("save.txt"))
-    {
-        console.log("File not found");
-    }
-      
     // The file *does* exist
-    if (fs.existsSync("save.txt")) {
+    if (fs.existsSync("save.json"))
+    {
         savedatasw = 1;
-        fs.createReadStream
-        // Read the file and do anything you want
-        var loaddata = fs.readFileSync('save.txt', 'utf8', holdname, playerlvl, health, mana, gold, savecoord);
-        
-        console.log(loaddata);
-        loaddata => holdname, playerlvl, health, mana, gold, savecoord;
+        fs.readFileSync('save.json', 'utf8', (err, jsonString) => 
+        {
+            if (err) 
+            {
+                console.log(err);
+                return;
+            }
+            else 
+            {
+                const data = JSON.parse(jsonString);
+                playerinfo = data.holdname, data.playerlvl, data.health, data.mana, data.gold, data.savecoord, data.savedatasw;
+                return;
+            }
+        });
+    return;
     }
+    return;
 };
 //end load//
 
@@ -218,11 +230,26 @@ function Coord()
 //HUD display//
 function Hud()
 {
-    Map();
     Coord();
     datetimestamp();
-    console.log("\x1b[32m< %s LV: %d H \x1b[31m %d \x1b[32m M \x1b[34m %d \x1b[32m G \x1b[33m %d \x1b[32m >\x1b[0m", holdname, playerlvl, health, mana, gold);
+    console.log("\n\x1b[32m< %s LV: %d H \x1b[31m %d \x1b[32m M \x1b[34m %d \x1b[32m G \x1b[33m %d \x1b[32m >\x1b[0m", holdname, playerlvl, health, mana, gold);
 };
+
+//save check function//
+function Savecheck()
+{
+    if (fs.existsSync("save.json"))
+        {
+            initial_save=1;
+            return;
+        }
+        else
+        {
+            initial_save=0;
+            return;
+        }   
+};
+
 
 //Map function//
 function Map()
@@ -242,7 +269,7 @@ function Map()
         console.log(Cyan, "~~~~~~", Yellow, "======", Green, "####", Yellow, "============");
         console.log(Cyan, "~~~~~", Yellow, "=======", Green, "####", Yellow, "============");
         console.log(Cyan, "~~", Yellow, "==========", Green, "####", Yellow, "============\x1b[0m");
-        return;
+
     }
    /* else
     {
@@ -267,31 +294,44 @@ function Map()
 //Commands//
 function Commands()
 {
-    readline.question("Enter Command: ", input =>
+    input = 0;
+    if (input != 2)
     {
-        if (input=save)
+        readline.question("Enter Command: ", input =>
         {
-            Save();
-            input = 0;
-            Main();
-            console.log("\n\nGame saved.\n\n");
-        }
+            if (input == save)
+            {
+                Save();
+                input = 0;
+                Map();
+                Hud();
+                console.log("\n\nGame saved.\n\n");
+                Commands();
+                return;
+            };
         
-        if (input=load)
-        {
-            Load();
-            input = 0;
-            Main();
-            console.log("\n\nGame loaded.\n\n");
-        }
+            if (input == load)
+            {
+                Load();
+                input = 0;
+                Map();
+                Hud();
+                console.log("\n\nGame loaded.\n\n");
+                Commands();
 
-        if (input=exit)
-        {
-            Save();
-            console.log("\n\nGame saved.\n\n");
-            return 0;
-        }
-    });
+                return;
+            };
+
+            if (input == exit)
+            {
+                Save();
+                console.log("\n\nGame saved. Exiting.\n\n");
+                process.exit();
+            };
+        return;
+        });
+    return;
+    };
 };
 
 function Graphic1()
@@ -300,7 +340,7 @@ function Graphic1()
             console.log("\x1b[40m\x1b[5m                                       ,                                     ");
             console.log("                                      ,  ,      ,          ,   ,     ,       ");
             console.log("                                       ,         ,    ,            ,         ");
-            console.log("                                     ,       .,,,,,.,.........,,,,,,,,,,.    ");
+            console.log("    ß                                 ,       .,,,,,.,.........,,,,,,,,,,.    ");
             console.log("                               ,,  ,,   ,,,,......,,,,,,,,,,,,,,,,,,         ");
             console.log("                                    ,,,,,,,,,,,,,,..,,,,,,.,,,,,             ");
             console.log("                                ,,,,,,,,,,,,,,,,,,,,,,,,,,,~                 ");
@@ -383,36 +423,33 @@ function Graphic2()
 //How main runs//
 function Main()
 {
+    inital_save=0;
+    Savecheck();
 
-    Load();
-    //intialize the game for first time//
-    if (savedatasw != 1)
-    {
-        Graphic1();
-        Getstats();
-    }
-    //end intialization//
+        if (initial_save == 0)
+        {
+        
+                Graphic1();
+                Getstats();
+        
+        }
 
-    if (savedatasw == 1) 
-    {
-        Graphic2();
-        Hud();
-        Commands();
-    }
-    /*if (intialsw != 0)
-    {
-        Hud();
-        initialsw = 1;
-        Commands();
-    }*/
+        if (initial_save == 1)
+        {
+            Graphic2();
+            Load();
+            Map();
+            Hud();
+            Commands();
+           
+        }
+    
+};
+    //end initialization//
 
-    return 0;
-}
 //end of functs//
 
 
+//Main call||body of program//
 
-
-
-//body of program//
 Main();
